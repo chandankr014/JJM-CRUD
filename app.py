@@ -15,6 +15,7 @@ client = pymongo.MongoClient(
 db = client["jaljeevanmissioniimb"]
 chatbot_collection = db["Chatbot"]
 user_collection = db["User"]
+questions_collection = db["question"]
 
 # Title
 st.title("Jal Jeevan Mission CRUD App")
@@ -64,6 +65,24 @@ def delete_entry(question):
     chatbot_collection.delete_one({"question": question})
     st.success("Entry deleted successfully!")
 
+# Function to read questions and provide an option to answer them
+def delete_question(question_id):
+    questions_collection.delete_one({'_id': question_id})
+    st.success("Question deleted successfully!")
+
+def read_questions():
+    entries = questions_collection.find()
+    for entry in entries:
+        que = entry['question']
+        st.write(f"Question: {entry['question']}")
+         # Adding a delete button
+        if st.button('Delete', key=entry['_id']):
+            delete_question(entry['_id'])
+            # Refresh the app to reflect the changes
+            st.rerun()  
+        st.write("---")
+
+
 # Sidebar for Login
 st.sidebar.title("Login")
 if 'authenticated' not in st.session_state:
@@ -88,7 +107,7 @@ else:
         st.sidebar.success("Logged out successfully")
 
 if st.session_state.authenticated:
-    option = st.selectbox("Select Operation", ["Create", "Read", "Update", "Delete"])
+    option = st.selectbox("Select Operation", ["Create", "Read", "Update", "Delete", "User Questions"])
 
     if option == "Create":
         st.subheader("Create a new entry")
@@ -117,6 +136,10 @@ if st.session_state.authenticated:
         selected_question = st.selectbox("Select Question to delete", questions)
         if st.button("Delete"):
             delete_entry(selected_question)
+
+    elif option == "User Questions":
+        st.subheader("Questions Submitted by Users")
+        read_questions()
 else:
     st.subheader("All Entries")
     read_entries()
